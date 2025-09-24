@@ -16,10 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from rest_framework.schemas import get_schema_view
 from django.views.generic import RedirectView
 from . import views
 import os
+
+# Get Codespace environment variables
+CODESPACE_NAME = os.environ.get('CODESPACE_NAME', None)
+CODESPACE_URL = f"https://{CODESPACE_NAME}-8000.app.github.dev" if CODESPACE_NAME else None
 
 # Create a router and register our viewsets with it
 router = DefaultRouter()
@@ -28,6 +31,14 @@ router.register(r'teams', views.TeamViewSet, basename='team')
 router.register(r'activities', views.ActivityViewSet, basename='activity')
 router.register(r'workouts', views.WorkoutViewSet, basename='workout')
 router.register(r'leaderboards', views.LeaderboardViewSet, basename='leaderboard')
+
+# Configure router with proper schema
+if CODESPACE_URL:
+    router.schema_title = 'Octofit API'
+    router.root_renderers = None  # Disable default API root view
+    # Override the default URL scheme
+    router.default_schema_renderers = ['rest_framework.renderers.JSONRenderer']
+    router.root_view_name = 'api-root'
 
 # The API URLs are determined by the router
 urlpatterns = [
